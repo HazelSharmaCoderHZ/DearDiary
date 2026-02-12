@@ -57,7 +57,7 @@ export default function SignupPage() {
   
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-purple-100">
+    <div className="min-h-screen flex flex-col md:flex-row bg-[#ddbb9f]">
       {/* LEFT SIDE: IMAGE */}
       <div className="relative hidden md:flex md:w-1/2 items-center justify-center overflow-hidden">
         <img

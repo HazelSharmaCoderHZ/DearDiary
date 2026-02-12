@@ -43,7 +43,7 @@ export default function ViewNotesPage() {
     <div className="min-h-screen flex items-center justify-center bg-white">
       <div className="flex flex-col items-center gap-4">
         <div className="w-12 h-12 border-4 border-purple-100 border-t-purple-600 rounded-full animate-spin" />
-        <p className="text-purple-600 font-medium tracking-widest uppercase text-xs">Unlocking Memories...</p>
+        <p className="text-[#1e1616] font-medium tracking-widest uppercase text-xs">Unlocking Memories...</p>
       </div>
     </div>
   );
@@ -58,11 +58,11 @@ export default function ViewNotesPage() {
       {/* Header */}
       <div className="max-w-7xl mx-auto mb-16 text-center md:text-left flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
-          <Link href="/dashboard" className="text-purple-600 font-bold text-sm uppercase tracking-widest hover:opacity-70 transition-opacity flex items-center gap-2 mb-4">
+        <Link href="/dashboard" className="text-[#1e1616] font-bold text-sm uppercase tracking-widest hover:opacity-70 transition-opacity flex items-center gap-2 mb-4">
             ← Back to Sanctuary
           </Link>
-          <h1 className="text-5xl md:text-6xl font-black text-slate-800 tracking-tight">
-            Past <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-fuchsia-500">Reflections</span>
+          <h1 className="text-5xl md:text-6xl font-black bg-clip-text text-transparent bg-gradient-to-r from-[#1e1616] via-purple-900 to-[#1e1616] tracking-tight">
+            Past Reflections
           </h1>
         </div>
         <div className="bg-white px-6 py-3 rounded-2xl border border-purple-100 shadow-sm">

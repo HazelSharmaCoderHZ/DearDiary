@@ -71,7 +71,7 @@ export default function EditNotesPage() {
   };
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-white text-purple-600 font-bold uppercase tracking-tighter">
+    <div className="min-h-screen flex items-center justify-center bg-white text-[#1e1616] font-bold uppercase tracking-tighter">
       Preparing your archives...
     </div>
   );
@@ -129,8 +129,8 @@ export default function EditNotesPage() {
         <Link href="/dashboard" className="text-purple-600 font-bold text-xs uppercase tracking-widest hover:opacity-70 transition-opacity flex items-center gap-2 mb-4">
           ← Dashboard
         </Link>
-        <h1 className="text-4xl md:text-5xl font-black text-slate-800 tracking-tight">
-          Manage <span className="text-purple-600">Archives</span>
+        <h1 className="text-4xl md:text-5xl font-black text-[#1e1616] tracking-tight">
+          Manage Archives
         </h1>
       </div>
 

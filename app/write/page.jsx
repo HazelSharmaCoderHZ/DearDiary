@@ -58,7 +58,7 @@ export default function WritePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-purple-200 via-purple-50 to-purple-200 flex flex-col items-center pt-12 px-6 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-r from-[#96897e] via-purple-50 to-[#96897e] flex flex-col items-center pt-12 px-6 relative overflow-hidden">
       
       {/* 🌌 Atmospheric Background */}
       <div className="absolute top-0 right-0 w-[40%] h-[40%] bg-purple-100/40 blur-[100px] -z-10 rounded-full" />
@@ -70,12 +70,12 @@ export default function WritePage() {
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-4xl flex justify-between items-center mb-12"
       >
-        <Link href="/dashboard" className="text-slate-400 hover:text-purple-600 transition-colors font-semibold flex items-center gap-2">
+        <Link href="/dashboard" className="text-slate-700 hover:text-[#1e1616] transition-colors font-semibold flex items-center gap-2">
           <span>←</span> Dashboard
         </Link>
         <div className="text-right">
-          <p className="text-purple-600 font-bold tracking-tight">{formattedDate}</p>
-          <p className="text-xs text-slate-400 uppercase tracking-widest">Personal Sanctuary</p>
+          <p className="text-[#1e1616] font-bold tracking-tight">{formattedDate}</p>
+          <p className="text-xs text-slate-800 uppercase tracking-widest">Personal Sanctuary</p>
         </div>
       </motion.div>
 
@@ -108,7 +108,7 @@ export default function WritePage() {
             onClick={saveNote}
             disabled={isSaving}
             className={`px-8 py-4 rounded-2xl font-bold text-white shadow-lg transition-all flex items-center gap-3 ${
-              isSaving ? 'bg-slate-400 cursor-not-allowed' : 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:shadow-purple-200'
+              isSaving ? 'bg-slate-400 cursor-not-allowed' : 'bg-[#1e1616]'
             }`}
           >
             {isSaving ? 'Saving...' : '✨ Save Entry'}
@@ -130,7 +130,7 @@ export default function WritePage() {
               animate={{ scale: 1, opacity: 1 }}
               className="text-center"
             >
-              <div className="text-6xl mb-4 text-purple-600">💜</div>
+              <div className="text-6xl mb-4 text-slate-900">💜</div>
               <h2 className="text-3xl font-black text-slate-800">Entry Saved.</h2>
               <p className="text-slate-500 mt-2">Your thoughts are safe in the vault.</p>
             </motion.div>

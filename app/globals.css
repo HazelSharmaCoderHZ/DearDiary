@@ -241,13 +241,13 @@ body {
 }
 @keyframes pulseGlow {
   0% {
-    box-shadow: 0 0 0 0 rgba(186, 85, 211, 0.6);
+    box-shadow: 0 0 0 0 rgba(128, 114, 59, 0.6);
   }
   60% {
-    box-shadow: 0 0 0 10px rgba(186, 85, 211, 0);
+    box-shadow: 0 0 0 10px rgba(146, 113, 59, 0);
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(186, 85, 211, 0);
+    box-shadow: 0 0 0 0 rgba(242, 243, 153, 0);
   }
 }
 
@@ -417,12 +417,19 @@ body {
   }
 }
 
-.fourthpageanim{
-  background: linear-gradient(-45deg, #b1eef1, #c4c4ed, #FFF1F5, #ECFEFF);
+.fourthpageanim {
+  background: linear-gradient(
+    -45deg,
+    #fff1f5,   /* very soft pink */
+    #ffe4ec,   /* blush */
+    #fef3c7,   /* soft warm yellow */
+    #fde68a    /* golden glow */
+  );
   background-size: 400% 400%;
   animation: gradientBGG 17s ease infinite;
-
 }
+
+
 @keyframes gradientBGG {
   0% {
     background-position: 0% 50%;

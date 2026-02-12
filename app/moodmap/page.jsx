@@ -45,7 +45,7 @@ export default function MoodMapPage() {
   }, [currentUser]);
 
   const Loader3 = () => (
-    <div className="min-h-screen flex justify-center items-center bg-purple-500">
+    <div className="min-h-screen flex justify-center items-center bg-[#ddbb9f]">
       <div className="loader3 mx-2"></div>
       <div className="loader3 mx-2"></div>
       <div className="loader3 mx-2"></div>

@@ -49,14 +49,14 @@ export default function DashboardPage() {
       
       {/* 🔮 Background Magic */}
       <div className="absolute top-[-10%] left-[-10%] w-[70%] h-[70%] rounded-full bg-purple-100/50 blur-[120px] animate-pulse" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-fuchsia-100/40 blur-[100px]" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-[#ddbb9f] blur-[100px]" />
 
       {/* Navigation Header */}
       <nav className="relative z-15 flex justify-between items-right px-2 py-1 max-w-7xl mx-auto">
         
         <button 
           onClick={handleLogout}
-          className="text-xs font-bold uppercase bg-purple-500 hover:bg-purple-100 tracking-widest text-slate-200 hover:text-purple-600 border m-1 p-2  rounded transition-colors"
+          className="text-xs font-bold uppercase bg-[#1e1616] hover:bg-purple-100 tracking-widest text-slate-200 hover:text-purple-600 border m-1 p-2  rounded transition-colors"
         >
           Logout
         </button>
@@ -73,8 +73,8 @@ export default function DashboardPage() {
           className="mb-16"
         >
           <div className="flex flex-row gap-6">
-          <h2 className="text-5xl sm:text-7xl font-black text-slate-900 tracking-tight leading-tight">
-            Hello, <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-fuchsia-500">Mindful Soul</span>
+          <h2 className="text-5xl sm:text-7xl font-blold bg-clip-text text-transparent bg-gradient-to-r from-[#1e1616] via-fuchsia-800 to-[#1e1616] tracking-tight leading-tight">
+            Hello, Mindful Soul
           </h2>
           <motion.div 
             initial={{ scale: 0 }}
@@ -107,10 +107,10 @@ export default function DashboardPage() {
                 <div className="text-4xl mb-4 transform group-hover:scale-110 transition-transform duration-300">
                   {item.icon}
                 </div>
-                <h3 className="text-xl font-bold text-slate-800 mb-1 group-hover:text-purple-600 transition-colors">
+                <h3 className="text-xl font-bold text-slate-800 mb-1 group-hover:text-[#3d1d09] transition-colors">
                   {item.title}
                 </h3>
-                <div className="h-1 w-0 bg-gradient-to-r from-purple-600 to-fuchsia-500 group-hover:w-full transition-all duration-500 rounded-full mt-2" />
+                <div className="h-1 w-0 bg-[#967e7e] group-hover:w-full transition-all duration-500 rounded-full mt-2" />
               </motion.div>
             </Link>
           ))}
