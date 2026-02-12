@@ -940,7 +940,7 @@ export default function DearDiaryPremiumLanding() {
                           fontWeight: 300, fontFamily: 'var(--font-body)', textDecoration: 'none',
                         }}
                       >
-                        <span>🔗</span> Founder — Hazel Sharma & Anushka Singh
+                        <span>🔗</span> Founder — Hazel Sharma & Anushka Jain
                       </motion.a>
                     </MagneticWrap>
                   </div>
