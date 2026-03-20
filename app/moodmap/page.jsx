@@ -2,9 +2,6 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
-import { collection, doc, getDocs, setDoc } from "firebase/firestore";
-import { db } from "@/firebase/firebaseconfig";
-import { useAuth } from "@/context/AuthContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import "react-calendar/dist/Calendar.css";
@@ -14,8 +11,10 @@ import { motion } from "framer-motion";
 
 const Calendar = dynamic(() => import("react-calendar"), { ssr: false });
 
+// 🔥 API BASE
+const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+
 export default function MoodMapPage() {
-  const { currentUser } = useAuth();
   const [value, setValue] = useState(new Date());
   const [moods, setMoods] = useState({});
   const [showModal, setShowModal] = useState(false);
@@ -23,26 +22,34 @@ export default function MoodMapPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
 
+  // ✅ FETCH MOODS FROM BACKEND
   useEffect(() => {
-    if (!currentUser) return;
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      router.push("/login");
+      return;
+    }
+
     async function fetchMoods() {
       try {
-        const moodsCollection = collection(db, "moods", currentUser.uid, "moods");
-        const snap = await getDocs(moodsCollection);
-        const moodsObj = {};
-        snap.forEach((doc) => {
-          moodsObj[doc.id] = doc.data().mood;
+        const res = await fetch(`${API}/moods`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         });
-        setMoods(moodsObj);
+
+        const data = await res.json();
+        setMoods(data);
       } catch (e) {
         console.error("Error fetching moods:", e);
       } finally {
-        const timer = setTimeout(() => setIsLoading(false), 2000);
-        return () => clearTimeout(timer);
+        setTimeout(() => setIsLoading(false), 1000);
       }
     }
+
     fetchMoods();
-  }, [currentUser]);
+  }, [router]);
 
   const Loader3 = () => (
     <div className="min-h-screen flex justify-center items-center bg-[#ddbb9f]">
@@ -52,13 +59,36 @@ export default function MoodMapPage() {
     </div>
   );
 
+  // ✅ SAVE MOOD TO BACKEND
   const handleMood = async (mood) => {
-    if (!selectedDate || !currentUser) return;
+    if (!selectedDate) return;
+
+    const token = localStorage.getItem("token");
     const dateStr = selectedDate.toISOString().slice(0, 10);
-    const moodRef = doc(db, "moods", currentUser.uid, "moods", dateStr);
-    await setDoc(moodRef, { mood });
-    setMoods((prev) => ({ ...prev, [dateStr]: mood }));
-    setShowModal(false);
+
+    try {
+      await fetch(`${API}/moods`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          date: dateStr,
+          mood,
+        }),
+      });
+
+      // update UI instantly
+      setMoods((prev) => ({
+        ...prev,
+        [dateStr]: mood,
+      }));
+
+      setShowModal(false);
+    } catch (err) {
+      console.error("Error saving mood:", err);
+    }
   };
 
   const formatDate = (date) => {
@@ -83,7 +113,6 @@ export default function MoodMapPage() {
       
       {/* 🔮 Background Layer */}
       <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none select-none">
-        {/* Top Blob */}
         <img 
           src="blob.png" 
           alt="" 
@@ -103,7 +132,7 @@ export default function MoodMapPage() {
         <p className="text-slate-700 mt-2 font-medium italic">Visualize your emotional journey through time.</p>
       </motion.div>
 
-      {/* Calendar Container - Glassmorphism */}
+      {/* Calendar */}
       <motion.div 
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -130,82 +159,36 @@ export default function MoodMapPage() {
         </div>
       </motion.div>
 
-      {/* Mood Selector Dialog */}
+      {/* Modal */}
       <Dialog open={showModal} onOpenChange={setShowModal}>
         <DialogContent className="bg-white backdrop-blur-xl rounded-[2.5rem] border border-white/10 shadow-2xl max-w-sm text-slate-500">
           <DialogHeader>
             <DialogTitle className="text-2xl font-black text-center text-black">
               Daily Pulse
             </DialogTitle>
-            <p className="text-center text-black text-sm">How was {selectedDate?.toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })}?</p>
+            <p className="text-center text-black text-sm">
+              How was {selectedDate?.toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })}?
+            </p>
           </DialogHeader>
           <div className="grid grid-cols-1 gap-3 mt-6">
-            <Button 
-              onClick={() => handleMood("good")} 
-              className="py-7 rounded-2xl bg-green-500/60 text-slate-500 hover:bg-green-500/20 border border-green-500/20 transition-all text-lg font-bold"
-            >
-              😊 Vibrant & Good
-            </Button>
-            <Button 
-              onClick={() => handleMood("average")} 
-              className="py-7 rounded-2xl bg-yellow-500/60 text-slate-500 hover:bg-yellow-500/20 border border-yellow-500/20 transition-all text-lg font-bold"
-            >
-              😐 Just Fine
-            </Button>
-            <Button 
-              onClick={() => handleMood("bad")} 
-              className="py-7 rounded-2xl bg-red-500/60 text-slate-500 hover:bg-red-500/20 border border-red-500/20 transition-all text-lg font-bold"
-            >
-              ☹️ A Bit Tough
-            </Button>
+            <Button onClick={() => handleMood("good")} className="py-7 rounded-2xl bg-green-500/60 text-slate-500">😊 Vibrant & Good</Button>
+            <Button onClick={() => handleMood("average")} className="py-7 rounded-2xl bg-yellow-500/60 text-slate-500">😐 Just Fine</Button>
+            <Button onClick={() => handleMood("bad")} className="py-7 rounded-2xl bg-red-500/60 text-slate-500">☹️ A Bit Tough</Button>
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* Back Button */}
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
-        <Button
-          onClick={() => router.push('/dashboard')}
-          className="mt-12 bg-transparent text-purple-500 hover:text-fuchsia-400 hover:bg-white/5 px-8 py-6 rounded-2xl border border-white/10 transition-all font-bold uppercase tracking-widest text-xs"
-        >
+      {/* Back */}
+      <motion.div>
+        <Button onClick={() => router.push('/dashboard')} className="mt-12">
           ← Return to Dashboard
         </Button>
       </motion.div>
 
       <style jsx global>{`
-        .react-calendar {
-          border: none !important;
-          background: transparent !important;
-          font-family: inherit !important;
-          width: 100% !important;
-          max-width: 400px;
-          color: white !important;
-        }
-        .react-calendar__tile {
-          padding: 1.5em 0.5em !important;
-          font-weight: 600 !important;
-        }
-        .react-calendar__navigation button {
-          font-weight: 800 !important;
-          font-size: 1.2rem !important;
-          color: white !important;
-        }
-        .react-calendar__navigation button:hover {
-          background-color: rgba(11, 11, 11, 0.1) !important;
-          border-radius: 12px;
-        }
-        .react-calendar__month-view__weekdays {
-          color: rgba(11, 11, 11, 0.5) !important;
-          text-transform: uppercase;
-          font-size: 0.75rem;
-          font-weight: 800;
-        }
-        .mood-good { background: #4ade80 !important; color: #064e3b !important; box-shadow: 0 4px 15px rgba(74, 222, 128, 0.4); }
-        .mood-average { background: #fde047 !important; color: #713f12 !important; box-shadow: 0 4px 15px rgba(253, 224, 71, 0.4); }
-        .mood-bad { background: #f87171 !important; color: #7f1d1d !important; box-shadow: 0 4px 15px rgba(248, 113, 113, 0.4); }
-        
-        .react-calendar__tile--now { background: rgba(255,255,255,0.1) !important; border-radius: 16px; }
-        .react-calendar__tile--active { background: #d8b4fe !important; color: #4a148c !important; border-radius: 16px; }
+        .mood-good { background: #4ade80 !important; }
+        .mood-average { background: #fde047 !important; }
+        .mood-bad { background: #f87171 !important; }
       `}</style>
     </div>
   );

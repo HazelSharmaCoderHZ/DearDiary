@@ -1,20 +1,17 @@
 'use client';
 
 import { useEffect, useState } from "react";
-import { onAuthStateChanged } from "firebase/auth";
-import { auth, db } from "../../firebase/firebaseconfig";
-import { collection, getDocs, doc, updateDoc, deleteDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import { getNotes, updateNote, deleteNote } from "@/lib/notes";
 
 export default function EditNotesPage() {
-  const [user, setUser] = useState(null);
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingNoteId, setEditingNoteId] = useState(null);
   const [editedText, setEditedText] = useState("");
-  
+
   // Custom Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [noteToDelete, setNoteToDelete] = useState(null);
@@ -22,50 +19,56 @@ export default function EditNotesPage() {
   const router = useRouter();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      if (!currentUser) {
-        router.push("/");
-      } else {
-        setUser(currentUser);
-        const notesRef = collection(db, "users", currentUser.uid, "notes");
-        const snapshot = await getDocs(notesRef);
-        const userNotes = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        const sortedNotes = userNotes.sort((a, b) => 
-          (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0)
-        );
-        setNotes(sortedNotes);
-        setLoading(false);
+    const token = localStorage.getItem("token");
+    if (!token) {
+      router.push("/login");
+      return;
+    }
+
+    const fetchNotes = async () => {
+      try {
+        const data = await getNotes();
+        setNotes(data);
+      } catch (err) {
+        console.error(err);
       }
-    });
-    return () => unsubscribe();
+      setLoading(false);
+    };
+
+    fetchNotes();
   }, [router]);
 
   const startEditing = (note) => {
-    setEditingNoteId(note.id);
-    setEditedText(note.note);
+    setEditingNoteId(note._id);
+    setEditedText(note.content);
   };
 
-  const saveEdit = async (noteId) => {
-    const noteRef = doc(db, "users", user.uid, "notes", noteId);
-    await updateDoc(noteRef, { note: editedText });
-    setNotes(notes.map(n => n.id === noteId ? { ...n, note: editedText } : n));
-    setEditingNoteId(null);
-    setEditedText("");
+  const saveEdit = async (id) => {
+    try {
+      await updateNote(id, { content: editedText });
+      setNotes(notes.map(n => n._id === id ? { ...n, content: editedText } : n));
+      setEditingNoteId(null);
+      setEditedText("");
+    } catch (err) {
+      console.error(err);
+      alert("Update failed");
+    }
   };
 
-  const triggerDeleteModal = (noteId) => {
-    setNoteToDelete(noteId);
+  const triggerDeleteModal = (id) => {
+    setNoteToDelete(id);
     setIsModalOpen(true);
   };
 
   const confirmDelete = async () => {
     if (!noteToDelete) return;
-    const noteRef = doc(db, "users", user.uid, "notes", noteToDelete);
-    await deleteDoc(noteRef);
-    setNotes(notes.filter((n) => n.id !== noteToDelete));
+    try {
+      await deleteNote(noteToDelete);
+      setNotes(notes.filter(n => n._id !== noteToDelete));
+    } catch (err) {
+      console.error(err);
+      alert("Delete failed");
+    }
     setIsModalOpen(false);
     setNoteToDelete(null);
   };
@@ -78,7 +81,7 @@ export default function EditNotesPage() {
 
   return (
     <div className="min-h-screen bg-[#fafafa] relative overflow-hidden px-6 py-12 text-slate-900">
-      
+
       {/* Background Decor */}
       <div className="absolute top-0 left-0 w-[40%] h-[40%] bg-purple-100/40 blur-[120px] -z-10 rounded-full" />
       <div className="absolute bottom-0 right-0 w-[40%] h-[40%] bg-blue-50/40 blur-[120px] -z-10 rounded-full" />
@@ -87,14 +90,14 @@ export default function EditNotesPage() {
       <AnimatePresence>
         {isModalOpen && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
-            <motion.div 
-              initial={{ opacity: 0 }} 
-              animate={{ opacity: 1 }} 
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsModalOpen(false)}
               className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
             />
-            <motion.div 
+            <motion.div
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
@@ -106,13 +109,13 @@ export default function EditNotesPage() {
               <h3 className="text-2xl font-black text-slate-800 mb-2">Delete Entry?</h3>
               <p className="text-slate-500 mb-8">This memory will be removed from your vault forever. Are you sure?</p>
               <div className="flex flex-col gap-3">
-                <button 
+                <button
                   onClick={confirmDelete}
                   className="w-full py-4 bg-red-500 text-white font-bold rounded-2xl hover:bg-red-600 transition-colors shadow-lg shadow-red-100"
                 >
                   Yes, Delete Forever
                 </button>
-                <button 
+                <button
                   onClick={() => setIsModalOpen(false)}
                   className="w-full py-4 bg-slate-100 text-slate-500 font-bold rounded-2xl hover:bg-slate-200 transition-colors"
                 >
@@ -134,11 +137,12 @@ export default function EditNotesPage() {
         </h1>
       </div>
 
+      {/* Notes List */}
       <div className="max-w-4xl mx-auto space-y-8">
         <AnimatePresence>
           {notes.map((note, idx) => (
             <motion.div
-              key={note.id}
+              key={note._id}
               layout
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -155,14 +159,16 @@ export default function EditNotesPage() {
                     <p className="text-slate-700 font-bold">{note.date}</p>
                   </div>
                 </div>
-                
-                {/* 1. Time Visibility Instead of ID */}
+
+                {/* Timestamp badge — uses MongoDB createdAt */}
                 <div className="text-[11px] font-bold text-purple-500 bg-purple-50/50 border border-purple-100 px-4 py-1.5 rounded-full w-fit">
-                  ⏰ {note.timestamp?.toDate().toLocaleTimeString("en-IN", { hour: '2-digit', minute: '2-digit', hour12: true })}
+                  ⏰ {note.createdAt
+                    ? new Date(note.createdAt).toLocaleTimeString("en-IN", { hour: '2-digit', minute: '2-digit', hour12: true })
+                    : "—"}
                 </div>
               </div>
 
-              {editingNoteId === note.id ? (
+              {editingNoteId === note._id ? (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
                   <textarea
                     className="w-full h-40 p-5 text-slate-800 bg-purple-50/30 border border-purple-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:bg-white transition-all text-lg leading-relaxed font-serif italic"
@@ -170,14 +176,24 @@ export default function EditNotesPage() {
                     onChange={(e) => setEditedText(e.target.value)}
                   />
                   <div className="flex gap-3">
-                    <button onClick={() => saveEdit(note.id)} className="px-6 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-purple-600 transition-all">Save Changes</button>
-                    <button onClick={() => setEditingNoteId(null)} className="px-6 py-3 bg-slate-100 text-slate-500 font-bold rounded-xl">Cancel</button>
+                    <button
+                      onClick={() => saveEdit(note._id)}
+                      className="px-6 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-purple-600 transition-all"
+                    >
+                      Save Changes
+                    </button>
+                    <button
+                      onClick={() => setEditingNoteId(null)}
+                      className="px-6 py-3 bg-slate-100 text-slate-500 font-bold rounded-xl"
+                    >
+                      Cancel
+                    </button>
                   </div>
                 </motion.div>
               ) : (
                 <>
-                  <p className="text-slate-600 text-lg leading-relaxed mb-8 font-serif italic italic text-pretty">
-                    "{note.note}"
+                  <p className="text-slate-600 text-lg leading-relaxed mb-8 font-serif italic text-pretty">
+                    "{note.content}"
                   </p>
                   <div className="flex items-center gap-4 pt-6 border-t border-slate-50">
                     <button
@@ -187,7 +203,7 @@ export default function EditNotesPage() {
                       <span>✏️</span> Edit Entry
                     </button>
                     <button
-                      onClick={() => triggerDeleteModal(note.id)}
+                      onClick={() => triggerDeleteModal(note._id)}
                       className="flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-red-400 hover:border-red-200 hover:bg-red-50 transition-all"
                     >
                       <span>🗑️</span> Delete

@@ -1,11 +1,10 @@
 'use client';
 
 import { useEffect, useState } from "react";
-import { collection, getDocs } from "firebase/firestore";
-import { auth, db } from "@/firebase/firebaseconfig";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { getNotes } from "@/lib/notes";
 
 export default function ViewNotesPage() {
   const [notes, setNotes] = useState([]);
@@ -13,44 +12,47 @@ export default function ViewNotesPage() {
   const router = useRouter();
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(async (user) => {
-      if (!user) {
-        router.push("/");
-        return;
-      }
+    const token = localStorage.getItem("token");
 
+    if (!token) {
+      router.push("/login");
+      return;
+    }
+
+    const fetchNotes = async () => {
       try {
-        const notesCollectionRef = collection(db, "users", user.uid, "notes");
-        const notesSnapshot = await getDocs(notesCollectionRef);
-        const notesData = notesSnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        const sortedNotes = notesData.sort((a, b) =>
-          (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0)
+        const data = await getNotes();
+
+        // Sort by latest date
+        const sortedNotes = data.sort((a, b) =>
+          new Date(b.date) - new Date(a.date)
         );
+
         setNotes(sortedNotes);
       } catch (error) {
         console.error("Error fetching notes:", error);
       }
-      setLoading(false);
-    });
 
-    return () => unsubscribe();
+      setLoading(false);
+    };
+
+    fetchNotes();
   }, [router]);
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-white">
       <div className="flex flex-col items-center gap-4">
         <div className="w-12 h-12 border-4 border-purple-100 border-t-purple-600 rounded-full animate-spin" />
-        <p className="text-[#1e1616] font-medium tracking-widest uppercase text-xs">Unlocking Memories...</p>
+        <p className="text-[#1e1616] font-medium tracking-widest uppercase text-xs">
+          Unlocking Memories...
+        </p>
       </div>
     </div>
   );
 
   return (
     <div className="min-h-screen bg-[#fafafa] relative overflow-hidden px-6 py-12">
-      
+
       {/* 🔮 Background Glows */}
       <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-purple-100/40 blur-[120px] -z-10 rounded-full" />
       <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-50/40 blur-[100px] -z-10 rounded-full" />
@@ -58,7 +60,7 @@ export default function ViewNotesPage() {
       {/* Header */}
       <div className="max-w-7xl mx-auto mb-16 text-center md:text-left flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
-        <Link href="/dashboard" className="text-[#1e1616] font-bold text-sm uppercase tracking-widest hover:opacity-70 transition-opacity flex items-center gap-2 mb-4">
+          <Link href="/dashboard" className="text-[#1e1616] font-bold text-sm uppercase tracking-widest hover:opacity-70 transition-opacity flex items-center gap-2 mb-4">
             ← Back to Sanctuary
           </Link>
           <h1 className="text-5xl md:text-6xl font-black bg-clip-text text-transparent bg-gradient-to-r from-[#1e1616] via-purple-900 to-[#1e1616] tracking-tight">
@@ -66,15 +68,17 @@ export default function ViewNotesPage() {
           </h1>
         </div>
         <div className="bg-white px-6 py-3 rounded-2xl border border-purple-100 shadow-sm">
-          <p className="text-slate-500 font-medium">Total Entries: <span className="text-purple-600 font-bold">{notes.length}</span></p>
+          <p className="text-slate-500 font-medium">
+            Total Entries: <span className="text-purple-600 font-bold">{notes.length}</span>
+          </p>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto">
         {notes.length === 0 ? (
-          <motion.div 
-            initial={{ opacity: 0 }} 
-            animate={{ opacity: 1 }} 
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             className="flex flex-col items-center justify-center py-20 text-center bg-white rounded-[3rem] border border-dashed border-purple-200"
           >
             <div className="text-6xl mb-6">🏜️</div>
@@ -88,15 +92,15 @@ export default function ViewNotesPage() {
           <div className="columns-1 sm:columns-2 lg:columns-3 gap-8 space-y-8">
             {notes.map((note, idx) => (
               <motion.div
-                key={note.id}
+                key={note._id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.05 }}
                 className="break-inside-avoid relative group"
               >
                 <div className="bg-white border border-purple-50 rounded-[2rem] p-8 shadow-sm hover:shadow-xl hover:shadow-purple-100/50 transition-all duration-300 transform group-hover:scale-105">
-                  
-                  {/* Decorative element */}
+
+                  {/* Decorative Number */}
                   <div className="absolute top-6 right-8 text-purple-100 text-4xl font-black select-none opacity-50 group-hover:opacity-100 transition-opacity">
                     {idx + 1}
                   </div>
@@ -109,7 +113,7 @@ export default function ViewNotesPage() {
                   </div>
 
                   <p className="text-slate-700 text-lg leading-relaxed font-serif whitespace-pre-wrap mb-8 italic">
-                    "{note.note}"
+                    "{note.content}"
                   </p>
 
                   <div className="pt-6 border-t border-slate-50 flex items-center justify-between">
@@ -117,7 +121,9 @@ export default function ViewNotesPage() {
                       Stored in Vault
                     </span>
                     <span className="text-[10px] font-medium text-purple-400">
-                      {note.timestamp?.toDate().toLocaleTimeString("en-IN", { hour: '2-digit', minute: '2-digit' })}
+                      {note.createdAt
+                        ? new Date(note.createdAt).toLocaleTimeString("en-IN", { hour: '2-digit', minute: '2-digit' })
+                        : "✨"}
                     </span>
                   </div>
                 </div>

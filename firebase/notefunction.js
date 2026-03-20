@@ -1,21 +1,34 @@
-import { db } from "./firebaseconfig";
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
-import { auth } from "./firebaseconfig";
+import API from "./api";
 
+// SAVE NOTE
 export const saveNote = async (date, noteText) => {
   try {
-    const user = auth.currentUser;
-    if (!user) throw new Error("User not logged in");
+    const token = localStorage.getItem("token");
 
-    const noteRef = doc(db, "users", user.uid, "notes", date); // date = e.g. "2025-05-28"
-    await setDoc(noteRef, {
-      note: noteText,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
+    if (!token) throw new Error("User not logged in");
+
+    const res = await fetch(`${API}/notes`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: token
+      },
+      body: JSON.stringify({
+        content: noteText, // ✅ renamed
+        date: date
+      })
     });
 
-    console.log("✅ Note saved!");
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to save note");
+    }
+
+    console.log("✅ Note saved!", data);
+    return data;
+
   } catch (error) {
-    console.error("❌ Error saving note:", error);
+    console.error("❌ Error saving note:", error.message);
   }
 };

@@ -51,6 +51,7 @@ const GlobalStyles = () => (
       align-items: center;
       justify-content: center;
       overflow: hidden;
+      padding: 1rem;
     }
     .loader-grid {
       position: absolute;
@@ -77,10 +78,11 @@ const GlobalStyles = () => (
     .loader-text-wrap {
       position: relative;
       display: inline-block;
+      max-width: 100%;
     }
     .loader-text {
       font-family: var(--font-display);
-      font-size: clamp(3.5rem, 9vw, 8rem);
+      font-size: clamp(2.5rem, 9vw, 8rem);
       font-weight: 300;
       color: transparent;
       -webkit-text-stroke: 1px rgba(255,255,255,0.12);
@@ -92,7 +94,7 @@ const GlobalStyles = () => (
       position: absolute;
       inset: 0;
       font-family: var(--font-display);
-      font-size: clamp(3.5rem, 9vw, 8rem);
+      font-size: clamp(2.5rem, 9vw, 8rem);
       font-weight: 300;
       color: #fff;
       letter-spacing: 0.1em;
@@ -114,13 +116,14 @@ const GlobalStyles = () => (
       margin-top: 1.8rem;
       opacity: 0;
       animation: fade-up 0.8s ease forwards 0.7s;
+      text-align: center;
     }
     .loader-counter {
       position: absolute;
       bottom: 3rem;
       right: 4rem;
       font-family: var(--font-display);
-      font-size: 5rem;
+      font-size: clamp(2.5rem, 8vw, 5rem);
       font-weight: 300;
       color: rgba(255,255,255,0.05);
       letter-spacing: -0.02em;
@@ -207,6 +210,109 @@ const GlobalStyles = () => (
       z-index: 0;
       opacity: 0.45;
     }
+
+    /* ── NAVBAR RESPONSIVE ── */
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 2.5rem;
+    }
+    .nav-text-links {
+      display: flex;
+      align-items: center;
+      gap: 2.5rem;
+    }
+
+    /* ── ABOUT GRID ── */
+    .benefits-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.4rem;
+    }
+
+    /* ── SERVICES GRID ── */
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.2rem;
+      perspective: 1100px;
+    }
+    .service-card-wide {
+      grid-column: span 2;
+    }
+    .service-card-narrow {
+      grid-column: span 1;
+    }
+
+    /* ── CONTACT BUTTONS ── */
+    .contact-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.9rem;
+    }
+
+    /* ══════════════════════════════════════
+       RESPONSIVE BREAKPOINTS
+    ══════════════════════════════════════ */
+
+    /* Tablet: ≤ 900px */
+    @media (max-width: 900px) {
+      .benefits-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .services-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .service-card-wide {
+        grid-column: span 2;
+      }
+      .service-card-narrow {
+        grid-column: span 1;
+      }
+      .loader-counter {
+        right: 2rem;
+        bottom: 2rem;
+      }
+    }
+
+    /* Mobile: ≤ 640px */
+    @media (max-width: 640px) {
+      .nav-text-links {
+        display: none;
+      }
+      .nav-links {
+        gap: 1rem;
+      }
+      .benefits-grid {
+        grid-template-columns: 1fr;
+      }
+      .services-grid {
+        grid-template-columns: 1fr;
+      }
+      .service-card-wide,
+      .service-card-narrow {
+        grid-column: span 1;
+      }
+      .contact-buttons {
+        flex-direction: column;
+        align-items: center;
+      }
+      .loader-counter {
+        display: none;
+      }
+      .deco-ring {
+        display: none;
+      }
+    }
+
+    /* Very small: ≤ 400px */
+    @media (max-width: 400px) {
+      .loader-sub {
+        letter-spacing: 0.22em;
+        font-size: 0.62rem;
+      }
+    }
   `}</style>
 );
 
@@ -226,15 +332,20 @@ function Loader({ onDone }) {
   const [count, setCount] = useState(0);
 
   useEffect(() => {
-    let current = 0;
+    let start = 0;
+
     const interval = setInterval(() => {
-      current += 1;
-      setCount(current);
-      if (current >= 100) {
+      start += 1;
+      setCount(start);
+
+      if (start >= 100) {
         clearInterval(interval);
-        setTimeout(onDone, 400);
+        setTimeout(() => {
+          onDone();
+        }, 300);
       }
-    }, 24);
+    }, 20);
+
     return () => clearInterval(interval);
   }, [onDone]);
 
@@ -274,7 +385,7 @@ function Loader({ onDone }) {
 }
 
 /* ─────────────────────────────────────────────
-   FLOATING PARTICLES  (static positions to avoid hydration mismatch)
+   FLOATING PARTICLES
 ───────────────────────────────────────────── */
 const PARTICLES = [
   { id:0,  x:6,   y:14,  size:2, dur:7,  del:0   },
@@ -369,7 +480,7 @@ function SplitHeading({ children, delay = 0 }) {
 /* ─────────────────────────────────────────────
    SERVICE CARD
 ───────────────────────────────────────────── */
-function ServiceCard({ title, desc, icon, size }) {
+function ServiceCard({ title, desc, icon, wide }) {
   const x = useMotionValue(0);
   const y = useMotionValue(0);
   const sx = useSpring(x, { stiffness: 100, damping: 20 });
@@ -388,75 +499,77 @@ function ServiceCard({ title, desc, icon, size }) {
     <motion.div
       onMouseMove={onMove}
       onMouseLeave={onLeave}
-      style={{ rotateX, rotateY, transformStyle: 'preserve-3d', gridColumn: size === 'md:col-span-2' ? 'span 2' : 'span 1' }}
+      style={{ rotateX, rotateY, transformStyle: 'preserve-3d' }}
+      className={`group glass-card ${wide ? 'service-card-wide' : 'service-card-narrow'}`}
       initial={{ opacity: 0, y: 32 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
-      className="group glass-card"
-      style={{
+    >
+      <div style={{
         borderRadius: '1.75rem',
         padding: '2rem',
-        height: '15rem',
+        minHeight: '13rem',
         boxShadow: '0 4px 28px rgba(155,127,166,0.07)',
         position: 'relative',
         overflow: 'hidden',
-        gridColumn: size === 'md:col-span-2' ? 'span 2' : 'span 1',
-      }}
-    >
-      {/* hover glow */}
-      <div style={{
-        position: 'absolute', inset: 0, borderRadius: '1.75rem',
-        background: 'radial-gradient(circle at 55% 35%, rgba(155,127,166,0.09) 0%, transparent 65%)',
-        opacity: 0, transition: 'opacity 0.4s',
-        pointerEvents: 'none',
-      }}
-        className="group-glow"
-      />
+        height: '100%',
+      }}>
+        {/* hover glow */}
+        <div style={{
+          position: 'absolute', inset: 0, borderRadius: '1.75rem',
+          background: 'radial-gradient(circle at 55% 35%, rgba(155,127,166,0.09) 0%, transparent 65%)',
+          opacity: 0, transition: 'opacity 0.4s',
+          pointerEvents: 'none',
+        }}
+          className="group-glow"
+        />
 
-      <div style={{ transform: 'translateZ(28px)', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-        <motion.div
-          whileHover={{ scale: 1.18, rotate: 6 }}
-          transition={{ duration: 0.3 }}
-          style={{
-            width: '3.2rem', height: '3.2rem',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            borderRadius: '0.9rem',
-            background: 'rgba(155,127,166,0.07)',
-            fontSize: '1.6rem',
-          }}
-        >
-          {icon}
-        </motion.div>
+        <div style={{ transform: 'translateZ(28px)', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '1.5rem' }}>
+          <motion.div
+            whileHover={{ scale: 1.18, rotate: 6 }}
+            transition={{ duration: 0.3 }}
+            style={{
+              width: '3.2rem', height: '3.2rem',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              borderRadius: '0.9rem',
+              background: 'rgba(155,127,166,0.07)',
+              fontSize: '1.6rem',
+              flexShrink: 0,
+            }}
+          >
+            {icon}
+          </motion.div>
 
-        <div>
-          <h4 style={{
-            fontFamily: 'var(--font-display)', fontWeight: 400, color: 'var(--ink)',
-            fontSize: '1.3rem', marginBottom: '0.35rem',
-            transition: 'color 0.3s',
-          }}>
-            {title}
-          </h4>
-          <p style={{ color: 'var(--muted)', lineHeight: 1.65, fontWeight: 300, fontSize: '0.88rem' }}>
-            {desc}
-          </p>
+          <div>
+            <h4 style={{
+              fontFamily: 'var(--font-display)', fontWeight: 400, color: 'var(--ink)',
+              fontSize: '1.3rem', marginBottom: '0.35rem',
+              transition: 'color 0.3s',
+            }}>
+              {title}
+            </h4>
+            <p style={{ color: 'var(--muted)', lineHeight: 1.65, fontWeight: 300, fontSize: '0.88rem' }}>
+              {desc}
+            </p>
+          </div>
         </div>
+
+        {/* shimmer line */}
+        <div style={{
+          position: 'absolute', bottom: 0, left: '50%', transform: 'translateX(-50%)',
+          height: 2, width: 0, borderRadius: '999px 999px 0 0',
+          background: 'linear-gradient(to right, var(--mauve), #c9a96e)',
+          transition: 'width 0.5s ease',
+        }}
+          className="card-shimmer"
+        />
+
+        <style jsx>{`
+          .group:hover .card-shimmer { width: 40%; }
+          .group:hover .group-glow { opacity: 1; }
+        `}</style>
       </div>
-
-      {/* shimmer line */}
-      <div style={{
-        position: 'absolute', bottom: 0, left: '50%', transform: 'translateX(-50%)',
-        height: 2, width: 0, borderRadius: '999px 999px 0 0',
-        background: 'linear-gradient(to right, var(--mauve), #c9a96e)',
-        transition: 'width 0.5s ease',
-      }}
-        className="card-shimmer"
-      />
-
-      <style jsx>{`
-        .group:hover .card-shimmer { width: 40%; }
-        .group:hover .group-glow { opacity: 1; }
-      `}</style>
     </motion.div>
   );
 }
@@ -500,10 +613,10 @@ function MarqueeStrip() {
    DATA
 ───────────────────────────────────────────── */
 const SERVICES = [
-  { title: 'Journaling',    desc: 'Write freely without judgment in a safe, encrypted space.',       icon: '✍️', size: 'md:col-span-2' },
-  { title: 'Edit / Delete', desc: 'Your words, your rules.',                                         icon: '✂️', size: 'md:col-span-1' },
-  { title: 'Mood Calendar', desc: 'Visualize your emotional journey through a spectrum of colors.',  icon: '🗓️', size: 'md:col-span-1' },
-  { title: 'View Entries',  desc: "A beautiful timeline of your life's most precious memories.",     icon: '📖', size: 'md:col-span-2' },
+  { title: 'Journaling',    desc: 'Write freely without judgment in a safe, encrypted space.',       icon: '✍️', wide: true  },
+  { title: 'Edit / Delete', desc: 'Your words, your rules.',                                         icon: '✂️', wide: false },
+  { title: 'Mood Calendar', desc: 'Visualize your emotional journey through a spectrum of colors.',  icon: '🗓️', wide: false },
+  { title: 'View Entries',  desc: "A beautiful timeline of your life's most precious memories.",     icon: '📖', wide: true  },
 ];
 
 const BENEFITS = [
@@ -536,11 +649,67 @@ function SectionLabel({ children }) {
 }
 
 /* ─────────────────────────────────────────────
+   MOBILE MENU
+───────────────────────────────────────────── */
+function MobileMenu({ open, onClose }) {
+  return (
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          initial={{ opacity: 0, y: -16 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -16 }}
+          transition={{ duration: 0.3 }}
+          style={{
+            position: 'fixed',
+            top: '3.8rem',
+            left: 0,
+            right: 0,
+            zIndex: 899,
+            background: 'rgba(250,243,236,0.98)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            borderBottom: '1px solid rgba(155,127,166,0.12)',
+            padding: '1.5rem 2rem',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1.2rem',
+          }}
+        >
+          {['About', 'Services', 'Contact'].map((label) => (
+            <a key={label} href={`#${label.toLowerCase()}`}
+              onClick={onClose}
+              style={{
+                fontSize: '1rem', letterSpacing: '0.12em', color: 'var(--mauve)',
+                fontWeight: 300, fontFamily: 'var(--font-body)', textDecoration: 'none',
+              }}>
+              {label}
+            </a>
+          ))}
+          <Link href="/login"
+            onClick={onClose}
+            style={{
+              display: 'inline-block', padding: '0.55rem 1.4rem',
+              borderRadius: '999px', background: 'var(--mauve)', color: '#fff',
+              fontSize: '0.82rem', letterSpacing: '0.08em', fontWeight: 400,
+              fontFamily: 'var(--font-body)', textDecoration: 'none',
+              alignSelf: 'flex-start',
+            }}>
+            Login
+          </Link>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+/* ─────────────────────────────────────────────
    MAIN PAGE
 ───────────────────────────────────────────── */
 export default function DearDiaryPremiumLanding() {
   const [loaded, setLoaded] = useState(false);
   const [showContent, setShowContent] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     if (loaded) {
@@ -581,7 +750,7 @@ export default function DearDiaryPremiumLanding() {
             >
               <div style={{
                 maxWidth: '80rem', margin: '0 auto',
-                padding: '0.9rem 2.5rem',
+                padding: '0.9rem 1.5rem',
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
               }}>
                 <motion.span
@@ -595,13 +764,16 @@ export default function DearDiaryPremiumLanding() {
                   Dear Diary
                 </motion.span>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '2.5rem' }}>
-                  {['About', 'Services', 'Contact'].map((label) => (
-                    <a key={label} href={`#${label.toLowerCase()}`} className="ink-link"
-                      style={{ fontSize: '0.8rem', letterSpacing: '0.1em', color: 'var(--mauve)', fontWeight: 300, fontFamily: 'var(--font-body)' }}>
-                      {label}
-                    </a>
-                  ))}
+                {/* Desktop links */}
+                <div className="nav-links">
+                  <div className="nav-text-links">
+                    {['About', 'Services', 'Contact'].map((label) => (
+                      <a key={label} href={`#${label.toLowerCase()}`} className="ink-link"
+                        style={{ fontSize: '0.8rem', letterSpacing: '0.1em', color: 'var(--mauve)', fontWeight: 300, fontFamily: 'var(--font-body)' }}>
+                        {label}
+                      </a>
+                    ))}
+                  </div>
                   <MagneticWrap>
                     <Link href="/login" style={{
                       display: 'inline-block', padding: '0.5rem 1.35rem',
@@ -613,9 +785,38 @@ export default function DearDiaryPremiumLanding() {
                       Login
                     </Link>
                   </MagneticWrap>
+
+                  {/* Hamburger — visible only on mobile via CSS */}
+                  <button
+                    onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                    aria-label="Toggle menu"
+                    style={{
+                      display: 'none',
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      padding: '0.3rem',
+                      flexDirection: 'column',
+                      gap: '5px',
+                    }}
+                    className="hamburger-btn"
+                  >
+                    <span style={{ display: 'block', width: 22, height: 1.5, background: 'var(--mauve)', borderRadius: 2, transition: 'transform 0.3s', transform: mobileMenuOpen ? 'rotate(45deg) translate(4.5px, 4.5px)' : 'none' }} />
+                    <span style={{ display: 'block', width: 22, height: 1.5, background: 'var(--mauve)', borderRadius: 2, transition: 'opacity 0.3s', opacity: mobileMenuOpen ? 0 : 1 }} />
+                    <span style={{ display: 'block', width: 22, height: 1.5, background: 'var(--mauve)', borderRadius: 2, transition: 'transform 0.3s', transform: mobileMenuOpen ? 'rotate(-45deg) translate(4.5px, -4.5px)' : 'none' }} />
+                  </button>
                 </div>
               </div>
+
+              <style jsx>{`
+                @media (max-width: 640px) {
+                  .hamburger-btn { display: flex !important; }
+                }
+              `}</style>
             </motion.nav>
+
+            {/* Mobile slide-down menu */}
+            <MobileMenu open={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} />
 
             {/* ════ HERO ════ */}
             <section style={{
@@ -623,7 +824,7 @@ export default function DearDiaryPremiumLanding() {
               minHeight: '100vh',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               paddingTop: '8rem', paddingBottom: '5rem',
-              paddingLeft: '2rem', paddingRight: '2rem',
+              paddingLeft: '1.5rem', paddingRight: '1.5rem',
               overflow: 'hidden',
               background: `
                 radial-gradient(ellipse 75% 65% at 12% 28%, rgba(232,201,176,0.38) 0%, transparent 56%),
@@ -659,21 +860,21 @@ export default function DearDiaryPremiumLanding() {
 
                 {/* Headline */}
                 <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 300, color: 'var(--ink)', letterSpacing: '-0.015em', lineHeight: 1 }}>
-                  <span style={{ display: 'block', overflow: 'hidden', fontSize: 'clamp(3.2rem, 8.5vw, 8rem)' }}>
+                  <span style={{ display: 'block', overflow: 'hidden', fontSize: 'clamp(2.6rem, 8.5vw, 8rem)' }}>
                     <motion.span style={{ display: 'block' }}
                       initial={{ y: '108%' }} animate={{ y: '0%' }}
                       transition={{ delay: 0.42, duration: 1.05, ease: [0.16, 1, 0.3, 1] }}>
                       Your thoughts
                     </motion.span>
                   </span>
-                  <span style={{ display: 'block', overflow: 'hidden', fontSize: 'clamp(3.2rem, 8.5vw, 8rem)' }}>
+                  <span style={{ display: 'block', overflow: 'hidden', fontSize: 'clamp(2.6rem, 8.5vw, 8rem)' }}>
                     <motion.span style={{ display: 'block' }}
                       initial={{ y: '108%' }} animate={{ y: '0%' }}
                       transition={{ delay: 0.57, duration: 1.05, ease: [0.16, 1, 0.3, 1] }}>
                       deserve a
                     </motion.span>
                   </span>
-                  <span style={{ display: 'block', overflow: 'hidden', fontSize: 'clamp(3.2rem, 8.5vw, 8rem)' }}>
+                  <span style={{ display: 'block', overflow: 'hidden', fontSize: 'clamp(2.6rem, 8.5vw, 8rem)' }}>
                     <motion.span
                       style={{
                         display: 'block', fontStyle: 'italic', fontWeight: 400,
@@ -691,10 +892,11 @@ export default function DearDiaryPremiumLanding() {
                   initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 1.0, duration: 0.7 }}
                   style={{
-                    marginTop: '2rem', fontSize: '1.02rem', color: 'var(--muted)',
+                    marginTop: '2rem', fontSize: 'clamp(0.88rem, 2.5vw, 1.02rem)', color: 'var(--muted)',
                     fontWeight: 300, lineHeight: 1.9, letterSpacing: '0.01em',
                     maxWidth: '29rem', marginLeft: 'auto', marginRight: 'auto',
                     fontFamily: 'var(--font-body)',
+                    padding: '0 0.5rem',
                   }}
                 >
                   Dear Diary is a personal sanctuary to write, reflect,
@@ -704,7 +906,7 @@ export default function DearDiaryPremiumLanding() {
                 <motion.div
                   initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 1.2, duration: 0.65 }}
-                  style={{ marginTop: '2.8rem', display: 'flex', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap' }}
+                  style={{ marginTop: '2.8rem', display: 'flex', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap', padding: '0 1rem' }}
                 >
                   <MagneticWrap>
                     <Link href="/signup" style={{
@@ -713,6 +915,7 @@ export default function DearDiaryPremiumLanding() {
                       fontSize: '0.8rem', letterSpacing: '0.09em', fontWeight: 400,
                       fontFamily: 'var(--font-body)', textDecoration: 'none',
                       boxShadow: '0 7px 26px rgba(155,127,166,0.32)',
+                      whiteSpace: 'nowrap',
                     }}>
                       Start Journaling →
                     </Link>
@@ -723,6 +926,7 @@ export default function DearDiaryPremiumLanding() {
                       borderRadius: '999px', border: '1.5px solid rgba(155,127,166,0.3)',
                       color: 'var(--mauve)', fontSize: '0.8rem', letterSpacing: '0.09em',
                       fontWeight: 300, fontFamily: 'var(--font-body)', textDecoration: 'none',
+                      whiteSpace: 'nowrap',
                     }}>
                       Explore
                     </a>
@@ -752,7 +956,7 @@ export default function DearDiaryPremiumLanding() {
 
             {/* ════ ABOUT ════ */}
             <section id="about" style={{
-              position: 'relative', padding: '6rem 2.5rem', overflow: 'hidden',
+              position: 'relative', padding: 'clamp(3.5rem, 7vw, 6rem) clamp(1rem, 4vw, 2.5rem)', overflow: 'hidden',
               background: 'linear-gradient(160deg, #f9f3ee 0%, #f4edf8 100%)',
             }}>
               <div className="blob" style={{
@@ -769,11 +973,11 @@ export default function DearDiaryPremiumLanding() {
               }} />
 
               <div style={{ maxWidth: '72rem', margin: '0 auto', position: 'relative', zIndex: 1 }}>
-                <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
+                <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
                   <SectionLabel>Why it matters</SectionLabel>
                   <h3 style={{
                     fontFamily: 'var(--font-display)', fontWeight: 300, color: 'var(--ink)',
-                    fontSize: 'clamp(2rem, 4.5vw, 4.2rem)', letterSpacing: '-0.01em', lineHeight: 1.15,
+                    fontSize: 'clamp(1.9rem, 4.5vw, 4.2rem)', letterSpacing: '-0.01em', lineHeight: 1.15,
                   }}>
                     <SplitHeading delay={0}>About</SplitHeading>
                     {' '}
@@ -792,7 +996,7 @@ export default function DearDiaryPremiumLanding() {
                   />
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.4rem' }}>
+                <div className="benefits-grid">
                   {BENEFITS.map((item, i) => (
                     <motion.div key={i}
                       initial={{ opacity: 0, y: 36 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
@@ -809,7 +1013,7 @@ export default function DearDiaryPremiumLanding() {
                         {item.emoji}
                       </motion.div>
                       <p style={{
-                        fontFamily: 'var(--font-display)', fontSize: '1.1rem',
+                        fontFamily: 'var(--font-display)', fontSize: 'clamp(0.95rem, 2.5vw, 1.1rem)',
                         fontWeight: 400, color: 'var(--ink)', lineHeight: 1.45,
                       }}>
                         {item.text}
@@ -826,7 +1030,7 @@ export default function DearDiaryPremiumLanding() {
             </section>
 
             {/* ════ SERVICES ════ */}
-            <section id="services" style={{ padding: '6rem 2.5rem', background: 'var(--cream)', overflow: 'hidden' }}>
+            <section id="services" style={{ padding: 'clamp(3.5rem, 7vw, 6rem) clamp(1rem, 4vw, 2.5rem)', background: 'var(--cream)', overflow: 'hidden' }}>
               <div style={{ maxWidth: '80rem', margin: '0 auto' }}>
                 <div style={{
                   display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between',
@@ -836,11 +1040,11 @@ export default function DearDiaryPremiumLanding() {
                     <SectionLabel>What we offer</SectionLabel>
                     <h3 style={{
                       fontFamily: 'var(--font-display)', fontWeight: 300, color: 'var(--ink)',
-                      fontSize: 'clamp(2.2rem, 5vw, 4.8rem)', letterSpacing: '-0.02em', lineHeight: 1.05,
+                      fontSize: 'clamp(2rem, 5vw, 4.8rem)', letterSpacing: '-0.02em', lineHeight: 1.05,
                     }}>
-                      Our Services{' '}
+                      Our{' '}
                       <em style={{ fontStyle: 'italic', color: 'var(--mauve)' }}>
-                        <SplitHeading>Services</SplitHeading>
+                        Services
                       </em>
                     </h3>
                   </div>
@@ -852,8 +1056,7 @@ export default function DearDiaryPremiumLanding() {
                   </motion.p>
                 </div>
 
-                {/* Grid — using inline style for gridColumn to avoid Tailwind col-span issues */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.2rem', perspective: '1100px' }}>
+                <div className="services-grid">
                   {SERVICES.map((s, i) => <ServiceCard key={i} {...s} />)}
                 </div>
               </div>
@@ -861,7 +1064,7 @@ export default function DearDiaryPremiumLanding() {
 
             {/* ════ CONTACT ════ */}
             <section id="contact" style={{
-              position: 'relative', padding: '7rem 2.5rem', overflow: 'hidden',
+              position: 'relative', padding: 'clamp(4rem, 8vw, 7rem) clamp(1rem, 4vw, 2.5rem)', overflow: 'hidden',
               background: 'linear-gradient(140deg, #f4edf8 0%, #fdf5ed 100%)',
             }}>
               <div className="blob blob-3" style={{
@@ -878,7 +1081,7 @@ export default function DearDiaryPremiumLanding() {
               >
                 <div className="glass-card" style={{
                   borderRadius: '2.2rem',
-                  padding: 'clamp(2.2rem, 5vw, 4.5rem)',
+                  padding: 'clamp(1.8rem, 5vw, 4.5rem)',
                   textAlign: 'center',
                   boxShadow: '0 20px 56px rgba(155,127,166,0.09)',
                 }}>
@@ -896,7 +1099,7 @@ export default function DearDiaryPremiumLanding() {
                   </motion.div>
 
                   <h3 style={{
-                    fontFamily: 'var(--font-display)', fontSize: 'clamp(1.9rem, 4.2vw, 3.8rem)',
+                    fontFamily: 'var(--font-display)', fontSize: 'clamp(1.7rem, 4.2vw, 3.8rem)',
                     fontWeight: 300, color: 'var(--ink)', lineHeight: 1.12, marginBottom: '1.0rem',
                   }}>
                     <SplitHeading>We would love to</SplitHeading>
@@ -907,23 +1110,24 @@ export default function DearDiaryPremiumLanding() {
                   </h3>
 
                   <p style={{
-                    fontSize: '0.96rem', color: 'var(--muted)', maxWidth: '25rem',
+                    fontSize: 'clamp(0.85rem, 2.5vw, 0.96rem)', color: 'var(--muted)', maxWidth: '25rem',
                     margin: '0 auto 2.0rem', fontWeight: 400, lineHeight: 1.9, fontFamily: 'var(--font-body)',
                   }}>
                     Feedback, collaborations, or just a hello — our digital door is always open.
                   </p>
 
-                  <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '0.9rem' }}>
+                  <div className="contact-buttons">
                     <MagneticWrap>
                       <motion.a whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}
                         href="mailto:sharmahazel310@gmail.com"
                         style={{
                           display: 'inline-flex', alignItems: 'center', gap: '0.55rem',
-                          padding: '0.6rem 1.7rem', borderRadius: '0.9rem',
+                          padding: '0.6rem 1.4rem', borderRadius: '0.9rem',
                           background: 'var(--mauve)', color: '#fff',
                           fontSize: '0.82rem', letterSpacing: '0.04em', fontWeight: 400,
                           fontFamily: 'var(--font-body)', textDecoration: 'none',
                           boxShadow: '0 5px 18px rgba(155,127,166,0.26)',
+                          whiteSpace: 'nowrap',
                         }}
                       >
                         <span>💌</span> DearDiary@gmail.com
@@ -934,10 +1138,11 @@ export default function DearDiaryPremiumLanding() {
                         href="https://www.linkedin.com/in/hazelsharma-it/" target="_blank" rel="noreferrer"
                         style={{
                           display: 'inline-flex', alignItems: 'center', gap: '0.55rem',
-                          padding: '0.6rem 1.7rem', borderRadius: '0.9rem',
+                          padding: '0.6rem 1.4rem', borderRadius: '0.9rem',
                           background: '#fff', border: '1.5px solid rgba(155,127,166,0.2)',
                           color: 'var(--mauve)', fontSize: '0.82rem', letterSpacing: '0.04em',
                           fontWeight: 300, fontFamily: 'var(--font-body)', textDecoration: 'none',
+                          whiteSpace: 'nowrap',
                         }}
                       >
                         <span>🔗</span> Founder — Hazel Sharma & Anushka Jain
@@ -949,6 +1154,7 @@ export default function DearDiaryPremiumLanding() {
                     marginTop: '3rem', paddingTop: '1.3rem',
                     borderTop: '1px solid rgba(14, 14, 14, 0.09)',
                     display: 'flex', justifyContent: 'center', gap: '2rem', opacity: 0.78,
+                    flexWrap: 'wrap',
                   }}>
                     {['come', 'join', 'Dear Diary'].map((w, i) => (
                       <span key={i} style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: '1.05rem', color: 'var(--muted)' }}>
