@@ -41,7 +41,7 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-[#ddbb9f]">
+    <div className="min-h-screen flex text-black flex-col md:flex-row bg-[#ddbb9f]">
 
       <div className="relative hidden md:flex md:w-1/2">
         <img src="/img4.png" className="w-full h-full object-cover" />
@@ -50,7 +50,7 @@ export default function SignupPage() {
       <div className="flex-1 flex items-center justify-center p-10">
         <motion.div className="w-full max-w-md bg-white p-10 rounded-3xl shadow-xl">
           
-          <h1 className="text-3xl font-bold mb-6">Create Account</h1>
+          <h1 className="text-3xl text-black font-bold mb-6">Create Account</h1>
 
           <form onSubmit={handleSignup} className="space-y-4">
 
@@ -83,7 +83,7 @@ export default function SignupPage() {
           </form>
 
           <p className="mt-4 text-sm">
-            Already have an account? <a href="/login">Login</a>
+            Already have an account? <a href="/login" className="text-purple-600">Login</a>
           </p>
 
         </motion.div>

@@ -105,7 +105,7 @@ export default function Login() {
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-6 py-4 bg-slate-50 border rounded-2xl"
+              className="w-full px-6 py-4 bg-slate-50 text-black border rounded-2xl"
               required
             />
 
@@ -118,7 +118,7 @@ export default function Login() {
             </button>
           </form>
 
-          <p className="mt-4 text-sm text-center">
+          <p className="mt-4 text-sm text-black text-center">
             New here? <a href="/signup" className="text-purple-600">Join</a>
           </p>
         </motion.div>
