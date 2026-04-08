@@ -2,23 +2,29 @@
 
 import { useState, useEffect } from "react";
 import API from "@/lib/api";
-import { useRouter } from "next/navigation"; 
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function Login() {
   const router = useRouter();
-  
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [loading, setLoading] = useState(true); // ✅ starts true
 
   useEffect(() => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    router.replace("/dashboard");
-  }
-}, []);
+    const token = localStorage.getItem("token");
+    if (token) {
+      router.replace("/dashboard"); // already logged in
+    } else {
+      setLoading(false); // ✅ no token → show login form
+    }
+  }, []);
+
+  // ✅ MUST be inside component, AFTER all hooks
+  if (loading) return null;
 
   const handleEmailLogin = async (e) => {
     e.preventDefault();
@@ -28,28 +34,21 @@ export default function Login() {
     try {
       const res = await fetch(`${API}/auth/login`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password })
       });
 
       const data = await res.json();
 
-      // ✅ FIXED: store BOTH token + user
       if (res.ok && data.token) {
         localStorage.setItem("token", data.token);
-
-        // 🔥 IMPORTANT (for dashboard)
         localStorage.setItem("user", JSON.stringify({
           email: data.user?.email || email
         }));
-
         router.push("/dashboard");
       } else {
         setErrorMsg(data.message || "Invalid credentials");
       }
-
     } catch (error) {
       setErrorMsg("Server error. Try again.");
     } finally {
@@ -59,15 +58,15 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-[#ddbb9f]">
-      
+
       <div className="relative hidden md:flex md:w-1/2 items-center justify-center overflow-hidden">
-        <img src="/imgg3.png" alt="Reflecting" className="absolute inset-0 w-full h-full object-cover"/>
+        <img src="/imgg3.png" alt="Reflecting" className="absolute inset-0 w-full h-full object-cover" />
       </div>
 
       <div className="flex-1 flex items-center justify-center p-6 sm:p-12 relative">
         <div className="absolute top-0 right-0 w-64 h-64 bg-purple-100 blur-[100px] -z-10" />
 
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="w-full max-w-md bg-white border border-purple-50 rounded-[2.5rem] p-8 md:p-12 shadow-2xl shadow-purple-100/20"
@@ -79,7 +78,7 @@ export default function Login() {
 
           <AnimatePresence>
             {errorMsg && (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
@@ -96,10 +95,9 @@ export default function Login() {
               placeholder="you@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-6 py-4 bg-slate-50 border rounded-2xl"
+              className="w-full px-6 py-4 bg-slate-50 border rounded-2xl text-slate-800"
               required
             />
-
             <input
               type="password"
               placeholder="••••••••"
@@ -108,11 +106,10 @@ export default function Login() {
               className="w-full px-6 py-4 bg-slate-50 text-black border rounded-2xl"
               required
             />
-
             <button
               type="submit"
               disabled={isProcessing}
-              className="w-full bg-slate-900 text-white py-4 rounded-2xl"
+              className="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold"
             >
               {isProcessing ? "Authenticating..." : "Sign In to Vault"}
             </button>
