@@ -144,9 +144,15 @@ export default function MoodMapPage() {
           onChange={setValue}
           value={value}
           onClickDay={(date) => {
-            setSelectedDate(date);
-            setShowModal(true);
-          }}
+  const today = new Date();
+  const isToday =
+    date.getDate() === today.getDate() &&
+    date.getMonth() === today.getMonth() &&
+    date.getFullYear() === today.getFullYear();
+  if (!isToday) return;
+  setSelectedDate(date);
+  setShowModal(true);
+}}
           tileClassName={getTileClass}
           className="main-calendar-override"
         />
