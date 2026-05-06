@@ -1135,7 +1135,7 @@ export default function DearDiaryPremiumLanding() {
                     </MagneticWrap>
                     <MagneticWrap>
                       <motion.a whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}
-                        href="https://www.linkedin.com/in/hazelsharma-it/" target="_blank" rel="noreferrer"
+                        href="https://hazel-sharma.vercel.app/" target="_blank" rel="noreferrer"
                         style={{
                           display: 'inline-flex', alignItems: 'center', gap: '0.55rem',
                           padding: '0.6rem 1.4rem', borderRadius: '0.9rem',
@@ -1145,10 +1145,26 @@ export default function DearDiaryPremiumLanding() {
                           whiteSpace: 'nowrap',
                         }}
                       >
-                        <span>🔗</span> Founder — Hazel Sharma & Anushka Jain
+                        <span>🔗</span> Founder — Hazel Sharma 
                       </motion.a>
                     </MagneticWrap>
                   </div>
+                  <MagneticWrap>
+                      <motion.a whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}
+                        href="https://www.linkedin.com/in/hazelsharma-it/"
+                        style={{
+                          display: 'inline-flex', alignItems: 'center', gap: '0.55rem',
+                          padding: '0.6rem 1.4rem', borderRadius: '0.9rem',
+                          background: 'var(--mauve)', color: '#fff',
+                          fontSize: '0.82rem', letterSpacing: '0.04em', fontWeight: 400,
+                          fontFamily: 'var(--font-body)', textDecoration: 'none',
+                          boxShadow: '0 5px 18px rgba(155,127,166,0.26)',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        <span>⚙️</span> Hazel_Sharma Linkedin
+                      </motion.a>
+                    </MagneticWrap>
 
                   <div style={{
                     marginTop: '3rem', paddingTop: '1.3rem',
