@@ -12,6 +12,8 @@ export default function WritePage() {
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const router = useRouter();
+  const [analysis, setAnalysis] = useState(null);
+const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -26,7 +28,37 @@ export default function WritePage() {
     const year = today.getFullYear();
     setFormattedDate(`${weekday}, ${day} ${month} ${year}`);
   }, []);
+  const analyzeNote = async () => {
+  if (!note.trim()) {
+    return alert("Write something before analysis.");
+  }
 
+  setIsAnalyzing(true);
+
+  try {
+    const token = localStorage.getItem("token");
+
+    const response = await fetch("http://localhost:5000/api/analyze", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        text: note,
+      }),
+    });
+
+    const data = await response.json();
+
+    setAnalysis(data);
+  } catch (err) {
+    console.error(err);
+    alert("Analysis failed");
+  } finally {
+    setIsAnalyzing(false);
+  }
+};
   const saveNote = async () => {
     if (!note.trim()) return alert('The page is waiting for your words...');
     setIsSaving(true);
@@ -91,7 +123,16 @@ export default function WritePage() {
         />
 
         {/* Floating Save Button */}
-        <div className="absolute bottom-8 right-8 z-30">
+        <div className="absolute bottom-8 right-8 z-30 flex gap-4">
+          <motion.button
+  whileHover={{ scale: 1.05 }}
+  whileTap={{ scale: 0.95 }}
+  onClick={analyzeNote}
+  disabled={isAnalyzing}
+  className="px-8 py-4 rounded-2xl font-bold bg-purple-700 text-white shadow-lg"
+>
+  {isAnalyzing ? "Analyzing..." : "🧠 Analyze"}
+</motion.button>
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -127,6 +168,57 @@ export default function WritePage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+
+{analysis && (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    className="mt-8 w-full max-w-4xl bg-white/70 backdrop-blur-md rounded-3xl p-8 shadow-xl border border-purple-100"
+  >
+    <h2 className="text-2xl font-bold text-slate-800 mb-6">
+      🧠 AI Emotional Analysis
+    </h2>
+
+    <div className="grid md:grid-cols-2 gap-6">
+      <div>
+        <p className="font-semibold text-slate-700">Mood</p>
+        <p>{analysis.mood}</p>
+      </div>
+
+      <div>
+        <p className="font-semibold text-slate-700">Sentiment</p>
+        <p>{analysis.sentiment}</p>
+      </div>
+
+      <div>
+        <p className="font-semibold text-slate-700">Tone</p>
+        <p>{analysis.tone}</p>
+      </div>
+
+      <div>
+        <p className="font-semibold text-slate-700">Emotions</p>
+        <p>{analysis.emotions?.join(", ")}</p>
+      </div>
+    </div>
+
+    <div className="mt-6">
+      <p className="font-semibold text-slate-700 mb-2">
+        Insight
+      </p>
+
+      <p className="text-slate-600 leading-relaxed">
+        {analysis.insight}
+      </p>
+    </div>
+
+    <p className="text-xs text-slate-400 mt-6 italic">
+      This analysis is temporary and will not be saved with your diary entry.
+    </p>
+  </motion.div>
+)}
+
+
 
       <footer className="mt-8 text-slate-400 text-sm italic">
         The ink of the soul never fades.
