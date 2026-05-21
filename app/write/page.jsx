@@ -39,7 +39,7 @@ const [isAnalyzing, setIsAnalyzing] = useState(false);
     const token = localStorage.getItem("token");
 
     const response = await fetch(
-  `${process.env.NEXT_PUBLIC_API_URL}/api/analyze`,
+  `${process.env.NEXT_PUBLIC_API_URL}/analyze`,
   {
     method: "POST",
     headers: {
@@ -54,8 +54,10 @@ const [isAnalyzing, setIsAnalyzing] = useState(false);
 
     const data = await response.json();
 
-    setAnalysis(data);
-  } catch (err) {
+console.log(data);
+
+setAnalysis(data);}
+ catch (err) {
     console.error(err);
     alert("Analysis failed");
   } finally {
