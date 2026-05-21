@@ -38,16 +38,19 @@ const [isAnalyzing, setIsAnalyzing] = useState(false);
   try {
     const token = localStorage.getItem("token");
 
-    const response = await fetch("http://localhost:5000/api/analyze", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        text: note,
-      }),
-    });
+    const response = await fetch(
+  `${process.env.NEXT_PUBLIC_API_URL}/api/analyze`,
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      text: note,
+    }),
+  }
+);
 
     const data = await response.json();
 
